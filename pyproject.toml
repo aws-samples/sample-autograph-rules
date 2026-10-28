@@ -12,7 +12,11 @@ dependencies = [
     # layer pins exact versions in requirements-layer.txt; these bounds keep the local
     # test environment in the same compatibility range.
     "networkx>=3.0,<4",
-    "gremlinpython>=3.8,<3.9",
+    # Pinned exactly, not range-bounded: Neptune engine 1.5.0.0 supports TinkerPop
+    # 3.8.0-3.8.1 only, so `<3.9` was too loose and resolved to 3.8.2 locally — past the
+    # engine's ceiling, and out of step with the 3.8.1 pin in requirements-layer.txt.
+    # Raise this only alongside the engine's supported Gremlin range.
+    "gremlinpython==3.8.1",
     "pydantic>=2.9,<3",
     "simpleeval>=1.0,<2",
     "boto3>=1.26,<2",

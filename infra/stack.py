@@ -174,12 +174,22 @@ class AutoGraphRuleEngineStack(Stack):
                 min_capacity=1.0,
                 max_capacity=8.0,
             ),
-            # Reaches end of life 2027-03-06. Upgrading is deliberately a separate change:
-            # an in-place major upgrade requires declaring cluster AND instance parameter
-            # groups on the new engine family, and setting allow_major_version_upgrade on an
-            # existing cluster makes CloudFormation replace it with a new, empty one. Take a
-            # snapshot and review `cdk diff` for REPLACE before attempting it.
-            engine_version="1.3.1.0",
+            # 1.5.0.0 (2026-10-13) is the current major line. Three reasons this is pinned
+            # here rather than left on 1.3.1.0:
+            #   - CVE-2026-110812 (CVSS 9.9, unsafe deserialization in the Gremlin
+            #     graph-import path) affects engine >=1.2.0.0 and is fixed only in 1.4.7.1,
+            #     1.4.8.1 and 1.5.0.0. See AWS bulletin 2026-136-AWS.
+            #   - 1.3.1.0 reaches end of life 2027-03-06.
+            #   - 1.3.1.0 supports TinkerPop 3.6.2-3.6.5, but the Lambda layer pins
+            #     gremlinpython 3.8.1. 1.5.0.0 supports TinkerPop 3.8.0-3.8.1, so engine and
+            #     client now agree.
+            #
+            # 1.5.0.0 brings TinkerPop 3.8.x step-semantics changes; the traversals in
+            # backends/neptune_backend.py use only steps unaffected by them (no store(), no
+            # aggregate(Scope)). For an ALREADY DEPLOYED cluster this is a major version
+            # upgrade, not a no-op: snapshot first and review `cdk diff` for REPLACE, since
+            # CloudFormation may replace the cluster with a new, empty one.
+            engine_version="1.5.0.0",
         )
         neptune_cluster.add_resource_dependency(neptune_subnet_group)
 
